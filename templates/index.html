@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask To-Do App</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f9;
+            --text-color: #333;
+            --primary-color: #6200ea;
+            --secondary-color: #bb86fc;
+            --card-bg: #fff;
+            --delete-color: #ff1744;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            padding: 50px;
+            margin: 0;
+            transition: background-color 0.3s ease;
+        }
+        .container {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px 0 0 6px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        button:hover {
+            background-color: #4a00b0;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .todo-text {
+            flex: 1;
+            font-size: 16px;
+            word-break: break-all;
+        }
+        .complete .todo-text {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-update, .btn-delete {
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            color: white;
+            font-size: 14px;
+            transition: opacity 0.3s;
+        }
+        .btn-update {
+            background-color: var(--secondary-color);
+        }
+        .btn-delete {
+            background-color: var(--delete-color);
+        }
+        .btn-update:hover, .btn-delete:hover {
+            opacity: 0.8;
+        }
+        .empty-state {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <form action="/add" method="POST">
+            <input type="text" name="title" placeholder="Add a new task..." required>
+            <button type="submit">Add</button>
+        </form>
+        
+        <ul>
+            {% for todo in todo_list %}
+            <li class="{% if todo.complete %}complete{% endif %}">
+                <span class="todo-text">{{ todo.title }}</span>
+                <div class="actions">
+                    <a href="/update/{{ todo.id }}" class="btn-update">
+                        {% if todo.complete %}Undo{% else %}Done{% endif %}
+                    </a>
+                    <a href="/delete/{{ todo.id }}" class="btn-delete">Delete</a>
+                </div>
+            </li>
+            {% else %}
+            <p class="empty-state">No tasks yet. Add one above!</p>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

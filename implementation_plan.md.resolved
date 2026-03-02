@@ -1,0 +1,102 @@
+# Flask To-Do App Upgrade Plan
+
+This plan details the steps to implement user authentication, an improved data model for tasks, a modernized UI using Bootstrap 5, and a reorganized, cleaner project structure.
+
+## Proposed Changes
+
+We will transition the single-file [app.py](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app.py) structure into a more organized Flask application structure.
+
+### Project Structure Restructuring
+
+The new project structure will be:
+```
+c:/Users/SHAHAB COMPUTERS/OneDrive/Desktop/ToDo app/
+├── app.py                 (Entry point to run the app)
+├── requirements.txt       (Dependencies)
+├── app/                   (Main application package)
+│   ├── __init__.py        (App factory & initializations)
+│   ├── models.py          (Database models: User, Todo)
+│   ├── routes.py          (All view functions & routing)
+│   ├── static/            (Static assets)
+│   │   └── style.css
+│   └── templates/         (HTML templates)
+│       ├── base.html      (Base layout with Bootstrap 5)
+│       ├── index.html     (To-Do list view)
+│       ├── login.html     (User login form)
+│       └── register.html  (User registration form)
+```
+
+### Dependencies
+#### [MODIFY] [requirements.txt](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/requirements.txt)
+- Add `Flask-Login` for session management and user authentication.
+- Add `email-validator` (optional, if we validate emails, but we will use usernames for simplicity).
+
+### Application Logic & Initializations
+#### [NEW] [app/\_\_init\_\_.py](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app/__init__.py)
+- Initialize the Flask app, configure `SQLALCHEMY_DATABASE_URI` and a secret key for flask sessions.
+- Initialize `Flask-SQLAlchemy` and `Flask-Login`.
+
+#### [DELETE] [app.py](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app.py) (The old single-file app)
+#### [NEW] [app.py](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app.py) (The new entry point)
+- Will import the `app` instance from `app` package and run it.
+
+### Database Models
+#### [NEW] [app/models.py](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app/models.py)
+- `User` model: `id`, `username`, `password_hash`. Inherits from `UserMixin`.
+- [Todo](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app.py#11-15) model:
+  - `id`, `title` -> existing fields.
+  - `user_id` -> Foreign Key to `User`.
+  - `status` -> String (Pending, In Progress, Completed). Default: Pending.
+  - `priority` -> String (Low, Medium, High). Default: Medium.
+  - `due_date` -> Date (Optional).
+
+### Routes & Views
+#### [NEW] [app/routes.py](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app/routes.py)
+- Authentication Routes:
+  - `/register`: Handles user registration, uses `werkzeug.security.generate_password_hash`.
+  - `/login`: Handles user login, uses `werkzeug.security.check_password_hash`.
+  - `/logout`: Handles logging out the user via `flask_login.logout_user`.
+- Task Routes (Protected with `@login_required`):
+  - `/`: Display user-specific tasks (fetched via `current_user.todos`).
+  - `/add`: Handle adding tasks with the new fields (priority, due_date).
+  - `/update/<id>`: Full edit page to modify status, title, priority, due date.
+  - `/delete/<id>`: Deletes the task.
+
+### UI / Templates
+#### [NEW] [app/templates/base.html](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app/templates/base.html)
+- Includes Bootstrap 5 via CDN.
+- Contains a Navbar for navigation (Home, Login, Register, Logout).
+- Renders flash messages block for success/error alerts.
+
+#### [MODIFY] [app/templates/index.html](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app/templates/index.html) (Moved from old templates/)
+- Updates the list to display priorities (e.g., as Bootstrap badges), statuses, and due dates.
+- Adds appropriate buttons to Edit and Delete.
+
+#### [NEW] [app/templates/login.html](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app/templates/login.html) & [app/templates/register.html](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app/templates/register.html)
+- Clean, responsive forms using Bootstrap 5 to register and log in.
+
+#### [NEW] [app/templates/edit.html](file:///c:/Users/SHAHAB%20COMPUTERS/OneDrive/Desktop/ToDo%20app/app/templates/edit.html)
+- Form to edit an existing task to change its priority, status, or title.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+Currently, there are no existing automated tests in the project. Since you requested a simple upgrade, our focus will be on robust manual verification, though we can add minimal `pytest` tests if desired. For now, testing will be done interactively.
+
+### Manual Verification
+1. **Server Startup**: Run `flask run` or `python app.py` and ensure the server starts without errors at `http://localhost:5000`. 
+2. **Registration & Auth**: 
+   - Navigate to `/register` and create a new user. 
+   - Verify that invalid logins show an error using flash messages. 
+   - Log in successfully and check if the Navbar updates to show "Logout".
+3. **Data Segregation**:
+   - Create a task ("User A's Task").
+   - Register a second user ("User B"), log in, and ensure "User A's Task" is NOT visible.
+4. **Task Management**:
+   - Add a task with a Due Date and Priority. Verify it displays correctly.
+   - Edit the task description, status (e.g., to "In Progress"), and priority. Save and verify the update reflects on the main page.
+   - Delete the task and verify it disappears.
+5. **UI Checking**:
+   - Verify Bootstrap 5 styles apply nicely and Flash Messages (e.g., "Logged in successfully!") properly fade or display in a Bootstrap Alert box.
